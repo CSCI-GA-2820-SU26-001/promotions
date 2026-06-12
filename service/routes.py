@@ -30,12 +30,16 @@ from service.common import status  # HTTP Status Codes
 ######################################################################
 # GET INDEX
 ######################################################################
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
-    """Root URL response"""
+    """Root URL - returns service discovery information."""
     return (
-        "Reminder: return some useful information in json format about the service here",
-        status.HTTP_200_OK,
+        jsonify(
+            service="Promotions Service",
+            version="1.0.0",
+            promotions_url=url_for("list_promotions", _external=True),
+        ),
+        200,
     )
 
 
@@ -44,3 +48,9 @@ def index():
 ######################################################################
 
 # Todo: Place your REST API code here ...
+
+
+@app.route("/promotions", methods=["GET"])
+def list_promotions():
+    """Returns a list of Promotions"""
+    return jsonify([]), 200

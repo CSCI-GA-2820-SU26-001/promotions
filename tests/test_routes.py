@@ -73,3 +73,10 @@ class TestYourResourceService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     # Todo: Add your test cases here...
+
+    def test_list_promotions(self):
+        """It should return an empty list of Promotions"""
+        resp = self.client.get("/promotions")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data, [])
