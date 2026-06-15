@@ -23,7 +23,7 @@ import os
 import logging
 from unittest import TestCase
 from wsgi import app
-from service.models import Promotion, DataValidationError, db
+from service.models import Promotion, PromotionType, DataValidationError, db
 from .factories import PromotionFactory
 
 DATABASE_URI = os.getenv(
@@ -46,6 +46,10 @@ class TestPromotion(TestCase):
         app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
+
+        # add new db columns
+        db.drop_all()
+        db.create_all()
 
     @classmethod
     def tearDownClass(cls):
@@ -77,3 +81,38 @@ class TestPromotion(TestCase):
     #     self.assertEqual(data.name, resource.name)
 
     # Todo: Add your test cases here...
+
+    # Database (db) Definitions ------------
+    def test_promotion_types_members(self):
+        """It should have the defined PromotionType members"""
+        self.assertIn(PromotionType.UNKNOWN, PromotionType)
+        self.assertIn(PromotionType.PERCENT_OFF, PromotionType)
+        self.assertIn(PromotionType.FIXED_AMOUNT, PromotionType)
+        self.assertIn(PromotionType.BOGO, PromotionType)
+
+    def test_create_promotion_with_type(self):
+        """It should create a Promotion with a valid PromotionType"""
+        resource = PromotionFactory(promotion_type=PromotionType.PERCENT_OFF)
+        resource.create()
+        found = Promotion.find(resource.id)
+        self.assertEqual(found.promotion_type, PromotionType.PERCENT_OFF)
+
+    # Serialization ------------
+    def test_serialize_promotion(self):
+        """It should correctly serialize all fields of a promotion"""
+        resource = PromotionFactory(promotion_type=PromotionType.FIXED_AMOUNT)
+        resource.create()
+        data = resource.serialize()
+        self.assertEqual(data["id"], resource.id)
+        self.assertEqual(data["name"], resource.name)
+        self.assertEqual(data["promotion_type"], PromotionType.FIXED_AMOUNT.name)
+
+    def test_deserialize_promotion(self):
+        """It should correctly deserialize a promotion from a dictionary"""
+        resource = PromotionFactory(promotion_type=PromotionType.FIXED_AMOUNT)
+        resource.create()
+        serialized = resource.serialize()
+        new_promotion = Promotion()
+        new_promotion.deserialize(serialized)
+        self.assertEqual(new_promotion.name, resource.name)
+        self.assertEqual(new_promotion.promotion_type, resource.promotion_type)

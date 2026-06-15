@@ -3,7 +3,8 @@ Test Factory to make fake objects for testing
 """
 
 import factory
-from service.models import Promotion
+from factory.fuzzy import FuzzyChoice
+from service.models import Promotion, PromotionType
 
 
 class PromotionFactory(factory.Factory):
@@ -18,3 +19,4 @@ class PromotionFactory(factory.Factory):
     name = factory.Faker("first_name")
 
     # Todo: Add your other attributes here...
+    promotion_type = FuzzyChoice(list(PromotionType))
