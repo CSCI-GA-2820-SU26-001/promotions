@@ -6,6 +6,7 @@ All of the models are stored in this module
 
 import logging
 from flask_sqlalchemy import SQLAlchemy
+from enum import Enum
 
 logger = logging.getLogger("flask.app")
 
@@ -15,6 +16,15 @@ db = SQLAlchemy()
 
 class DataValidationError(Exception):
     """Used for an data validation errors when deserializing"""
+
+
+class PromotionType(Enum):
+    """Enum of valid promotion types"""
+
+    UNKNOWN = 0
+    PERCENT_OFF = 1  # eg. 20% off
+    FIXED_AMOUNT = 2  # eg. $10 off
+    BOGO = 3  # buy 1 get 1 free
 
 
 class Promotion(db.Model):
@@ -29,6 +39,9 @@ class Promotion(db.Model):
     name = db.Column(db.String(63))
 
     # Todo: Place the rest of your schema here...
+    promotion_type = db.Column(
+        db.Enum(PromotionType), nullable=False, default=PromotionType.UNKNOWN
+    )
 
     def __repr__(self):
         return f"<Promotion {self.name} id=[{self.id}]>"
@@ -72,7 +85,11 @@ class Promotion(db.Model):
 
     def serialize(self):
         """Serializes a Promotion into a dictionary"""
-        return {"id": self.id, "name": self.name}
+        return {
+            "id": self.id,
+            "name": self.name,
+            "promotion_type": self.promotion_type.name,
+        }
 
     def deserialize(self, data):
         """
@@ -83,6 +100,7 @@ class Promotion(db.Model):
         """
         try:
             self.name = data["name"]
+            self.promotion_type = PromotionType[data["promotion_type"]]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
