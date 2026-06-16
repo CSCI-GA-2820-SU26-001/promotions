@@ -22,9 +22,10 @@ Test cases for Pet Model
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
-from service.models import YourResourceModel, DataValidationError, db
-from .factories import YourResourceModelFactory
+from service.models import Promotion, PromotionType, DataValidationError, db
+from .factories import PromotionFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -32,11 +33,11 @@ DATABASE_URI = os.getenv(
 
 
 ######################################################################
-#  YourResourceModel   M O D E L   T E S T   C A S E S
+#  Promotion   M O D E L   T E S T   C A S E S
 ######################################################################
 # pylint: disable=too-many-public-methods
-class TestYourResourceModel(TestCase):
-    """Test Cases for YourResourceModel Model"""
+class TestPromotion(TestCase):
+    """Test Cases for Promotion Model"""
 
     @classmethod
     def setUpClass(cls):
@@ -47,6 +48,10 @@ class TestYourResourceModel(TestCase):
         app.logger.setLevel(logging.CRITICAL)
         app.app_context().push()
 
+        # add new db columns
+        db.drop_all()
+        db.create_all()
+
     @classmethod
     def tearDownClass(cls):
         """This runs once after the entire test suite"""
@@ -54,7 +59,7 @@ class TestYourResourceModel(TestCase):
 
     def setUp(self):
         """This runs before each test"""
-        db.session.query(YourResourceModel).delete()  # clean up the last tests
+        db.session.query(Promotion).delete()  # clean up the last tests
         db.session.commit()
 
     def tearDown(self):
@@ -65,15 +70,105 @@ class TestYourResourceModel(TestCase):
     #  T E S T   C A S E S
     ######################################################################
 
-    def test_example_replace_this(self):
-        """It should create a YourResourceModel"""
-        # Todo: Remove this test case example
-        resource = YourResourceModelFactory()
+    def test_promotion_types_members(self):
+        """It should have the defined PromotionType members"""
+        self.assertIn(PromotionType.UNKNOWN, PromotionType)
+        self.assertIn(PromotionType.PERCENT_OFF, PromotionType)
+        self.assertIn(PromotionType.FIXED_AMOUNT, PromotionType)
+        self.assertIn(PromotionType.BOGO, PromotionType)
+
+    def test_create_promotion(self):
+        """It should create a promotion that persists in the database"""
+        resource = PromotionFactory()
         resource.create()
         self.assertIsNotNone(resource.id)
-        found = YourResourceModel.all()
+        found = Promotion.all()
         self.assertEqual(len(found), 1)
-        data = YourResourceModel.find(resource.id)
+        data = Promotion.find(resource.id)
         self.assertEqual(data.name, resource.name)
 
-    # Todo: Add your test cases here...
+    def test_create_promotion_with_type(self):
+        """It should create a promotion with a specific PromotionType value"""
+        resource = PromotionFactory(promotion_type=PromotionType.PERCENT_OFF)
+        resource.create()
+        found = Promotion.find(resource.id)
+        self.assertEqual(found.promotion_type, PromotionType.PERCENT_OFF)
+
+    def test_create_db_error_raises_data_validation_error(self):
+        """It should raise DataValidationError and rollback when db.session.add fails"""
+        resource = PromotionFactory()
+        with patch("service.models.db.session.commit", side_effect=Exception("DB error")):
+            with self.assertRaises(DataValidationError):
+                resource.create()
+
+    def test_update_db_error_raises_data_validation_error(self):
+        """It should raise DataValidationError and rollback when db.session.commit fails on update"""
+        resource = PromotionFactory()
+        resource.create()
+        resource.name = "Changed"
+        with patch("service.models.db.session.commit", side_effect=Exception("DB error")):
+            with self.assertRaises(DataValidationError):
+                resource.update()
+
+    def test_delete_promotion(self):
+        """It should delete a promotion and remove it from the database"""
+        resource = PromotionFactory()
+        resource.create()
+        self.assertEqual(len(Promotion.all()), 1)
+        resource.delete()
+        self.assertEqual(len(Promotion.all()), 0)
+        self.assertIsNone(Promotion.find(resource.id))
+
+    def test_delete_db_error_raises_data_validation_error(self):
+        """It should raise DataValidationError and rollback when db.session.delete fails"""
+        resource = PromotionFactory()
+        resource.create()
+        with patch("service.models.db.session.delete", side_effect=Exception("DB error")):
+            with self.assertRaises(DataValidationError):
+                resource.delete()
+
+    # Serialization ------------
+    def test_serialize_promotion(self):
+        """It should correctly serialize all fields of a promotion"""
+        resource = PromotionFactory(promotion_type=PromotionType.FIXED_AMOUNT)
+        resource.create()
+        data = resource.serialize()
+        self.assertEqual(data["id"], resource.id)
+        self.assertEqual(data["name"], resource.name)
+        self.assertEqual(data["promotion_type"], PromotionType.FIXED_AMOUNT.name)
+        self.assertEqual(data["discount_value"], resource.discount_value)
+        self.assertEqual(data["start_date"], resource.start_date.isoformat())
+        self.assertEqual(data["end_date"], resource.end_date.isoformat())
+
+    def test_deserialize_promotion(self):
+        """It should correctly deserialize a promotion from a dictionary"""
+        resource = PromotionFactory(promotion_type=PromotionType.FIXED_AMOUNT)
+        resource.create()
+        serialized = resource.serialize()
+        new_promotion = Promotion()
+        new_promotion.deserialize(serialized)
+        self.assertEqual(new_promotion.name, resource.name)
+        self.assertEqual(new_promotion.promotion_type, resource.promotion_type)
+        self.assertEqual(new_promotion.discount_value, resource.discount_value)
+        self.assertEqual(new_promotion.start_date, resource.start_date)
+        self.assertEqual(new_promotion.end_date, resource.end_date)
+
+    def test_deserialize_missing_field(self):
+        """It should raise DataValidationError when a required field is missing"""
+        promotion = Promotion()
+        with self.assertRaises(DataValidationError):
+            promotion.deserialize({"promotion_type": "UNKNOWN"})
+        with self.assertRaises(DataValidationError):
+            promotion.deserialize({"name": "Test Promotion"})
+
+    def test_deserialize_invalid_attribute_raises_data_validation_error(self):
+        """It should raise DataValidationError for invalid attribute types"""
+        promotion = Promotion()
+        with self.assertRaises(DataValidationError):
+            promotion.deserialize(None)
+
+    def test_find_by_name_returns_empty_when_no_match(self):
+        """It should return no results when no promotion matches the name"""
+        PromotionFactory(name="Test Name").create()
+        results = Promotion.find_by_name("Nonexistent")
+        self.assertEqual(results.count(), 0)
