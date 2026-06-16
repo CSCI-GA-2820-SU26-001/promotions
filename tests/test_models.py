@@ -22,10 +22,10 @@ Test cases for Pet Model
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
 from service.models import Promotion, PromotionType, DataValidationError, db
 from .factories import PromotionFactory
-from unittest.mock import patch, MagicMock
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
