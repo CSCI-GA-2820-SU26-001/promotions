@@ -5,9 +5,9 @@ All of the models are stored in this module
 """
 
 import logging
-from flask_sqlalchemy import SQLAlchemy
 from enum import Enum
 from datetime import date
+from flask_sqlalchemy import SQLAlchemy
 
 logger = logging.getLogger("flask.app")
 
@@ -39,7 +39,6 @@ class Promotion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(63))
 
-    # Todo: Place the rest of your schema here...
     promotion_type = db.Column(
         db.Enum(PromotionType), nullable=False, default=PromotionType.UNKNOWN
     )
