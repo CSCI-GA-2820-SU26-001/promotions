@@ -7,6 +7,7 @@ All of the models are stored in this module
 import logging
 from flask_sqlalchemy import SQLAlchemy
 from enum import Enum
+from datetime import date
 
 logger = logging.getLogger("flask.app")
 
@@ -42,6 +43,9 @@ class Promotion(db.Model):
     promotion_type = db.Column(
         db.Enum(PromotionType), nullable=False, default=PromotionType.UNKNOWN
     )
+    discount_value = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
+    start_date = db.Column(db.Date)
+    end_date = db.Column(db.Date)
 
     def __repr__(self):
         return f"<Promotion {self.name} id=[{self.id}]>"
@@ -89,6 +93,9 @@ class Promotion(db.Model):
             "id": self.id,
             "name": self.name,
             "promotion_type": self.promotion_type.name,
+            "discount_value": self.discount_value,
+            "start_date": self.start_date.isoformat() if self.start_date else None,
+            "end_date": self.end_date.isoformat() if self.end_date else None,
         }
 
     def deserialize(self, data):
@@ -101,6 +108,15 @@ class Promotion(db.Model):
         try:
             self.name = data["name"]
             self.promotion_type = PromotionType[data["promotion_type"]]
+            self.discount_value = data.get("discount_value", 0.0)
+            self.start_date = (
+                date.fromisoformat(data["start_date"])
+                if data.get("start_date")
+                else None
+            )
+            self.end_date = (
+                date.fromisoformat(data["end_date"]) if data.get("end_date") else None
+            )
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
