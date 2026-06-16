@@ -3,8 +3,9 @@ Test Factory to make fake objects for testing
 """
 
 import factory
-from factory.fuzzy import FuzzyChoice
+from factory.fuzzy import FuzzyChoice, FuzzyDecimal
 from service.models import Promotion, PromotionType
+from datetime import timedelta
 
 
 class PromotionFactory(factory.Factory):
@@ -20,3 +21,6 @@ class PromotionFactory(factory.Factory):
 
     # Todo: Add your other attributes here...
     promotion_type = FuzzyChoice(list(PromotionType))
+    discount_value = FuzzyDecimal(0, 100, precision=2)
+    start_date = factory.Faker("date_object")
+    end_date = factory.LazyAttribute(lambda o: o.start_date + timedelta(days=7))
