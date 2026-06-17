@@ -74,6 +74,29 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    def test_read_promotion(self):
+        """It should read a single Promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        resp = self.client.get(f"/promotions/{promotion.id}")
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["id"], promotion.id)
+        self.assertEqual(data["name"], promotion.name)
+        self.assertEqual(data["promotion_type"], promotion.promotion_type.name)
+        self.assertEqual(data["start_date"], promotion.start_date.isoformat())
+        self.assertEqual(data["end_date"], promotion.end_date.isoformat())
+
+    def test_read_promotion_not_found(self):
+        """It should not read a Promotion that does not exist"""
+        resp = self.client.get("/promotions/0")
+
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        data = resp.get_json()
+        self.assertEqual(data["status"], status.HTTP_404_NOT_FOUND)
+        self.assertEqual(data["error"], "Not Found")
     def test_get_promotion_list(self):
         """It should return a list of all Promotions"""
         promotions = PromotionFactory.create_batch(5)
