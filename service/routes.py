@@ -83,3 +83,16 @@ def get_promotion(promotion_id):
 
     app.logger.info("Returning Promotion: %s", promotion.name)
     return jsonify(promotion.serialize()), status.HTTP_200_OK
+
+
+@app.route("/promotions", methods=["GET"])
+def list_promotions():
+    """Returns a list of all Promotions"""
+    app.logger.info("Request for promotion list")
+
+    promotions = Promotion.all()
+
+    results = [promotion.serialize() for promotion in promotions]
+    app.logger.info("Returning %d promotions", len(results))
+
+    return jsonify(results), status.HTTP_200_OK

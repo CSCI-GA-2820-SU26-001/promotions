@@ -25,12 +25,12 @@ from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Promotion
-from .factories import PromotionFactory
-from .factories import PromotionFactory
+from tests.factories import PromotionFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
+BASE_URL = "/promotions"
 
 
 ######################################################################
@@ -115,3 +115,38 @@ class TestYourResourceService(TestCase):
         data = resp.get_json()
         self.assertEqual(data["status"], status.HTTP_404_NOT_FOUND)
         self.assertEqual(data["error"], "Not Found")
+
+    def test_get_promotion_list(self):
+        """It should return a list of all Promotions"""
+        promotions = PromotionFactory.create_batch(5)
+        for promotion in promotions:
+            promotion.create()
+
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 5)
+
+    def test_get_promotion_list_when_empty(self):
+        """It should return an empty list when no Promotions exist"""
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data, [])
+
+    def test_get_promotion_list_returns_correct_fields(self):
+        """It should return Promotions with all expected fields"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 1)
+
+        result = data[0]
+        self.assertEqual(result["name"], promotion.name)
+        self.assertEqual(result["promotion_type"], promotion.promotion_type.name)
+        self.assertEqual(result["start_date"], promotion.start_date.isoformat())
+        self.assertEqual(result["end_date"], promotion.end_date.isoformat())
+        self.assertIn("id", result)
