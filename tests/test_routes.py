@@ -74,6 +74,23 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
+    def test_delete_promotion(self):
+        """It should delete a Promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        resp = self.client.delete(f"/promotions/{promotion.id}")
+
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(resp.data, b"")
+        self.assertIsNone(Promotion.find(promotion.id))
+
+    def test_delete_promotion_not_found(self):
+        """It should return no content when deleting a missing Promotion"""
+        resp = self.client.delete("/promotions/0")
+
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(resp.data, b"")
     def test_read_promotion(self):
         """It should read a single Promotion"""
         promotion = PromotionFactory()
