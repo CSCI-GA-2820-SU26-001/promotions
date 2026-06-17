@@ -44,3 +44,16 @@ def index():
 ######################################################################
 
 # Todo: Place your REST API code here ...
+
+
+@app.route("/promotions", methods=["GET"])
+def list_promotions():
+    """Returns a list of all Promotions"""
+    app.logger.info("Request for promotion list")
+
+    promotions = Promotion.all()
+
+    results = [promotion.serialize() for promotion in promotions]
+    app.logger.info("Returning %d promotions", len(results))
+
+    return jsonify(results), status.HTTP_200_OK
