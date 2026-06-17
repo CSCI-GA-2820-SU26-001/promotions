@@ -1,69 +1,121 @@
-# NYU DevOps Project Template
+# Promotions Service
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
 
-This is a skeleton you can use to start your projects.
+The Promotions service is a RESTful Flask microservice for managing product and store promotions in an eCommerce application. A promotion represents a special sale or offer, such as "buy 1 get 1 free", a fixed dollar discount, or a percentage discount.
 
-**Note:** _Feel free to overwrite this `README.md` file with the one that describes your project._
+## Resource Model
 
-## Overview
+Promotion records are stored in PostgreSQL and include:
 
-This project template contains starter code for your class project. The `/service` folder contains your `models.py` file for your model and a `routes.py` file for your service. The `/tests` folder has test case starter code for testing the model and the service separately. All you need to do is add your functionality. You can use the [lab-flask-tdd](https://github.com/nyu-devops/lab-flask-tdd) for code examples to copy from.
+| Field | Type | Description |
+| --- | --- | --- |
+| `id` | integer | Unique promotion identifier |
+| `name` | string | Promotion name |
+| `promotion_type` | enum | One of `UNKNOWN`, `PERCENT_OFF`, `FIXED_AMOUNT`, `BOGO` |
+| `discount_value` | decimal | Discount amount or percentage value |
+| `start_date` | date | Date the promotion starts |
+| `end_date` | date | Date the promotion ends |
 
-## Automatic Setup
+Example JSON payload:
 
-The best way to use this repo is to start your own repo using it as a git template. To do this just press the green **Use this template** button in GitHub and this will become the source for your repository.
+```json
+{
+  "name": "Summer Sale",
+  "promotion_type": "PERCENT_OFF",
+  "discount_value": "20.00",
+  "start_date": "2026-06-01",
+  "end_date": "2026-06-07"
+}
+```
 
-## Manual Setup
+## REST API
 
-You can also clone this repository and then copy and paste the starter code into your project repo folder on your local computer. Be careful not to copy over your own `README.md` file so be selective in what you copy.
+| Method | Endpoint | Description | Request Body |
+| --- | --- | --- | --- |
+| `GET` | `/` | Service information and links | None |
+| `POST` | `/promotions` | Create a promotion | Promotion JSON |
+| `GET` | `/promotions` | List promotions | None |
+| `GET` | `/promotions/<id>` | Read a promotion by ID | None |
+| `PUT` | `/promotions/<id>` | Update a promotion by ID | Promotion JSON |
+| `DELETE` | `/promotions/<id>` | Delete a promotion by ID | None |
 
-There are 4 hidden files that you will need to copy manually if you use the Mac Finder or Windows Explorer to copy files from this folder into your repo folder.
+All API responses, including error responses, should be returned as JSON except successful `DELETE` responses, which return `204 No Content`.
 
-These should be copied using a bash shell as follows:
+## Development Setup
+
+The recommended setup is the VS Code Dev Container provided with the course project. Open the repository in VS Code and reopen it in the container when prompted.
+
+For local setup, install the project dependencies:
 
 ```bash
-    cp .gitignore  ../<your_repo_folder>/
-    cp .flaskenv ../<your_repo_folder>/
-    cp .gitattributes ../<your_repo_folder>/
+make install
 ```
 
-## Contents
+Copy the example environment file if needed:
 
-The project contains the following:
+```bash
+cp dot-env-example .env
+```
+
+## Repository Structure
 
 ```text
-.gitignore          - this will ignore vagrant and other metadata files
-.flaskenv           - Environment variables to configure Flask
-.gitattributes      - File to gix Windows CRLF issues
-.devcontainers/     - Folder with support for VSCode Remote Containers
-dot-env-example     - copy to .env to use environment variables
-pyproject.toml      - Poetry list of Python libraries required by your code
+service/
+├── models.py             # Promotion model and database access methods
+├── routes.py             # Flask REST API routes
+└── common/               # Shared status codes, error handlers, logging, and CLI commands
 
-service/                   - service python package
-├── __init__.py            - package initializer
-├── config.py              - configuration parameters
-├── models.py              - module with business models
-├── routes.py              - module with service routes
-└── common                 - common code package
-    ├── cli_commands.py    - Flask command to recreate all tables
-    ├── error_handlers.py  - HTTP error handling code
-    ├── log_handlers.py    - logging setup code
-    └── status.py          - HTTP status constants
-
-tests/                     - test cases package
-├── __init__.py            - package initializer
-├── factories.py           - Factory for testing with fake objects
-├── test_cli_commands.py   - test suite for the CLI
-├── test_models.py         - test suite for business models
-└── test_routes.py         - test suite for service routes
+tests/
+├── factories.py          # Test data factories
+├── test_models.py        # Model unit tests
+├── test_routes.py        # REST API route tests
+└── test_cli_commands.py  # CLI command tests
 ```
 
-## License
+## Running the Service
 
-Copyright (c) 2016, 2025 [John Rofrano](https://www.linkedin.com/in/JohnRofrano/). All rights reserved.
+Start the service locally:
 
-Licensed under the Apache License. See [LICENSE](LICENSE)
+```bash
+honcho start
+```
 
-This repository is part of the New York University (NYU) masters class: **CSCI-GA.2820-001 DevOps and Agile Methodologies** created and taught by [John Rofrano](https://cs.nyu.edu/~rofrano/), Adjunct Instructor, NYU Courant Institute, Graduate Division, Computer Science, and NYU Stern School of Business.
+Then open:
+
+```text
+http://localhost:8080/
+```
+
+## Running Tests
+
+Run the full test suite:
+
+```bash
+make test
+```
+
+Run the linter:
+
+```bash
+make lint
+```
+
+The project goal is at least 95% test coverage.
+
+## Expected JSON Input
+
+`POST /promotions` and `PUT /promotions/<id>` expect a JSON body with these fields:
+
+| Field | Required | Example |
+| --- | --- | --- |
+| `name` | Yes | `"Summer Sale"` |
+| `promotion_type` | Yes | `"PERCENT_OFF"` |
+| `discount_value` | No | `"20.00"` |
+| `start_date` | No | `"2026-06-01"` |
+| `end_date` | No | `"2026-06-07"` |
+
+## Project Workflow
+
+All work should be done on feature branches. Open a pull request for each user story, connect the PR to the matching ZenHub issue, and request review from another squad member before merging.
