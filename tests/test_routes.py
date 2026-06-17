@@ -25,6 +25,7 @@ from unittest import TestCase
 from wsgi import app
 from service.common import status
 from service.models import db, Promotion
+from .factories import PromotionFactory
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
@@ -72,11 +73,20 @@ class TestYourResourceService(TestCase):
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
-    # Todo: Add your test cases here...
+    def test_delete_promotion(self):
+        """It should delete a Promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
 
-    def test_list_promotions(self):
-        """It should return an empty list of Promotions"""
-        resp = self.client.get("/promotions")
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(data, [])
+        resp = self.client.delete(f"/promotions/{promotion.id}")
+
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(resp.data, b"")
+        self.assertIsNone(Promotion.find(promotion.id))
+
+    def test_delete_promotion_not_found(self):
+        """It should return no content when deleting a missing Promotion"""
+        resp = self.client.delete("/promotions/0")
+
+        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertEqual(resp.data, b"")
