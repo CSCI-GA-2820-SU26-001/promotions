@@ -147,6 +147,9 @@ class TestYourResourceService(TestCase):
         result = data[0]
         self.assertEqual(result["name"], promotion.name)
         self.assertEqual(result["promotion_type"], promotion.promotion_type.name)
+        self.assertEqual(
+            float(result["discount_value"]), float(promotion.discount_value)
+        )
         self.assertEqual(result["start_date"], promotion.start_date.isoformat())
         self.assertEqual(result["end_date"], promotion.end_date.isoformat())
         self.assertIn("id", result)
