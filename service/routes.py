@@ -21,7 +21,7 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Promotion
 """
 
-from flask import jsonify, abort, url_for
+from flask import jsonify, abort, url_for, request
 from flask import current_app as app  # Import Flask application
 from service.models import Promotion
 from service.common import status  # HTTP Status Codes
@@ -47,7 +47,23 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-# Todo: Place your REST API code here ...
+@app.route("/promotions", methods=["POST"])
+def create_promotion():
+    """Create a new Promotion"""
+    app.logger.info("Request to create a Promotion")
+    check_content_type("application/json")
+
+    promotion = Promotion()
+    promotion.deserialize(request.get_json())
+    promotion.create()
+
+    location_url = f"/promotions/{promotion.id}"
+
+    return (
+        jsonify(promotion.serialize()),
+        status.HTTP_201_CREATED,
+        {"Location": location_url},
+    )
 
 
 @app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
@@ -96,3 +112,19 @@ def list_promotions():
     app.logger.info("Returning %d promotions", len(results))
 
     return jsonify(results), status.HTTP_200_OK
+
+
+######################################################################
+#  U T I L I T Y   F U N C T I O N S
+######################################################################
+
+def check_content_type(media_type):
+    """Checks that the media type is correct"""
+    content_type = request.headers.get("Content-Type")
+    if content_type and content_type == media_type:
+        return
+    app.logger.error("Invalid content type: %s", content_type)
+    abort(
+        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
+        f"Content type must be {media_type}",
+    )
