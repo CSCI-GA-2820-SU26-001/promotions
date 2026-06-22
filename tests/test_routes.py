@@ -30,6 +30,7 @@ from tests.factories import PromotionFactory
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgresql+psycopg://postgres:postgres@localhost:5432/testdb"
 )
+BASE_URL = "/promotions"
 
 
 ######################################################################
@@ -72,6 +73,11 @@ class TestYourResourceService(TestCase):
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertIn("service", data)
+        self.assertIn("version", data)
+        self.assertIn("promotions_url", data)
+        self.assertIn("/promotions", data["promotions_url"])
 
     def test_create_promotion(self):
         """It should create a promotion and return 201 with a Location header"""
