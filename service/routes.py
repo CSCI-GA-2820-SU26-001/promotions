@@ -47,36 +47,52 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-@app.route("/promotions", methods=["POST"])
-def create_promotion():
-    """Create a new Promotion"""
-    app.logger.info("Request to create a Promotion")
-    check_content_type("application/json")
-
-    promotion = Promotion()
-    promotion.deserialize(request.get_json())
-    promotion.create()
-
-    location_url = f"/promotions/{promotion.id}"
-
-    return (
-        jsonify(promotion.serialize()),
-        status.HTTP_201_CREATED,
-        {"Location": location_url},
-    )
+# Todo: Place your REST API code here ...
 
 
-######################################################################
-#  U T I L I T Y   F U N C T I O N S
-######################################################################
+@app.route("/promotions/<int:promotion_id>", methods=["DELETE"])
+def delete_promotion(promotion_id):
+    """
+    Delete a Promotion
 
-def check_content_type(media_type):
-    """Checks that the media type is correct"""
-    content_type = request.headers.get("Content-Type")
-    if content_type and content_type == media_type:
-        return
-    app.logger.error("Invalid content type: %s", content_type)
-    abort(
-        status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
-        f"Content type must be {media_type}",
-    )
+    This endpoint will delete a Promotion based on its ID.
+    """
+    app.logger.info("Request to delete Promotion with id: %s", promotion_id)
+    promotion = Promotion.find(promotion_id)
+    if promotion:
+        promotion.delete()
+
+    app.logger.info("Promotion with id %s delete complete", promotion_id)
+    return "", status.HTTP_204_NO_CONTENT
+
+
+@app.route("/promotions/<int:promotion_id>", methods=["GET"])
+def get_promotion(promotion_id):
+    """
+    Retrieve a single Promotion
+
+    This endpoint will return a Promotion based on its ID.
+    """
+    app.logger.info("Request to retrieve Promotion with id: %s", promotion_id)
+    promotion = Promotion.find(promotion_id)
+    if not promotion:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id '{promotion_id}' was not found.",
+        )
+
+    app.logger.info("Returning Promotion: %s", promotion.name)
+    return jsonify(promotion.serialize()), status.HTTP_200_OK
+
+
+@app.route("/promotions", methods=["GET"])
+def list_promotions():
+    """Returns a list of all Promotions"""
+    app.logger.info("Request for promotion list")
+
+    promotions = Promotion.all()
+
+    results = [promotion.serialize() for promotion in promotions]
+    app.logger.info("Returning %d promotions", len(results))
+
+    return jsonify(results), status.HTTP_200_OK
