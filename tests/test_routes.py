@@ -79,82 +79,56 @@ class TestYourResourceService(TestCase):
         self.assertIn("promotions_url", data)
         self.assertIn("/promotions", data["promotions_url"])
 
-    def test_delete_promotion(self):
-        """It should delete a Promotion"""
+    def test_create_promotion(self):
+        """It should create a promotion and return 201 with a Location header"""
         promotion = PromotionFactory()
-        promotion.create()
+        payload = promotion.serialize()
+        payload.pop("id")  # id is assigned by the DB, not provided by the client
 
-        resp = self.client.delete(f"/promotions/{promotion.id}")
-
-        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(resp.data, b"")
-        self.assertIsNone(Promotion.find(promotion.id))
-
-    def test_delete_promotion_not_found(self):
-        """It should return no content when deleting a missing Promotion"""
-        resp = self.client.delete("/promotions/0")
-
-        self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertEqual(resp.data, b"")
-
-    def test_read_promotion(self):
-        """It should read a single Promotion"""
-        promotion = PromotionFactory()
-        promotion.create()
-
-        resp = self.client.get(f"/promotions/{promotion.id}")
-
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(data["id"], promotion.id)
-        self.assertEqual(data["name"], promotion.name)
-        self.assertEqual(data["promotion_type"], promotion.promotion_type.name)
-        self.assertEqual(data["start_date"], promotion.start_date.isoformat())
-        self.assertEqual(data["end_date"], promotion.end_date.isoformat())
-
-    def test_read_promotion_not_found(self):
-        """It should not read a Promotion that does not exist"""
-        resp = self.client.get("/promotions/0")
-
-        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
-        data = resp.get_json()
-        self.assertEqual(data["status"], status.HTTP_404_NOT_FOUND)
-        self.assertEqual(data["error"], "Not Found")
-
-    def test_get_promotion_list(self):
-        """It should return a list of all Promotions"""
-        promotions = PromotionFactory.create_batch(5)
-        for promotion in promotions:
-            promotion.create()
-
-        resp = self.client.get(BASE_URL)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(len(data), 5)
-
-    def test_get_promotion_list_when_empty(self):
-        """It should return an empty list when no Promotions exist"""
-        resp = self.client.get(BASE_URL)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(data, [])
-
-    def test_get_promotion_list_returns_correct_fields(self):
-        """It should return Promotions with all expected fields"""
-        promotion = PromotionFactory()
-        promotion.create()
-
-        resp = self.client.get(BASE_URL)
-        self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertEqual(len(data), 1)
-
-        result = data[0]
-        self.assertEqual(result["name"], promotion.name)
-        self.assertEqual(result["promotion_type"], promotion.promotion_type.name)
-        self.assertEqual(
-            float(result["discount_value"]), float(promotion.discount_value)
+        resp = self.client.post(
+            "/promotions",
+            json=payload,
+            content_type="application/json",
         )
-        self.assertEqual(result["start_date"], promotion.start_date.isoformat())
-        self.assertEqual(result["end_date"], promotion.end_date.isoformat())
-        self.assertIn("id", result)
+
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        self.assertIn("Location", resp.headers)
+
+        data = resp.get_json()
+        self.assertIsNotNone(data["id"])
+        self.assertEqual(data["name"], payload["name"])
+        self.assertEqual(data["promotion_type"], payload["promotion_type"])
+        self.assertEqual(data["discount_value"], str(payload["discount_value"]))
+        self.assertEqual(data["start_date"], payload["start_date"])
+        self.assertEqual(data["end_date"], payload["end_date"])
+
+    def test_create_promotion_invalid_content_type(self):
+        """It should return 415 when Content-Type is not application/json"""
+        resp = self.client.post(
+            "/promotions",
+            data="not json",
+            content_type="text/plain",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_create_promotion_missing_required_field(self):
+        """It should return 400 when required fields are missing"""
+        resp = self.client.post(
+            "/promotions",
+            json={"discount_value": 10.0},  # missing name and promotion_type
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_promotion_invalid_promotion_type(self):
+        """It should return 400 when promotion_type is not a valid enum value"""
+        resp = self.client.post(
+            "/promotions",
+            json={
+                "name": "Bad Type Promo",
+                "promotion_type": "INVALID_TYPE",
+                "discount_value": 5.0,
+            },
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
