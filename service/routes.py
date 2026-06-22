@@ -21,7 +21,7 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Promotion
 """
 
-from flask import jsonify, abort
+from flask import jsonify, abort, url_for
 from flask import current_app as app  # Import Flask application
 from service.models import Promotion
 from service.common import status  # HTTP Status Codes
@@ -30,12 +30,16 @@ from service.common import status  # HTTP Status Codes
 ######################################################################
 # GET INDEX
 ######################################################################
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
-    """Root URL response"""
+    """Root URL - returns service discovery information."""
     return (
-        "Reminder: return some useful information in json format about the service here",
-        status.HTTP_200_OK,
+        jsonify(
+            service="Promotions Service",
+            version="1.0.0",
+            promotions_url=url_for("list_promotions", _external=True),
+        ),
+        200,
     )
 
 
@@ -60,6 +64,8 @@ def delete_promotion(promotion_id):
 
     app.logger.info("Promotion with id %s delete complete", promotion_id)
     return "", status.HTTP_204_NO_CONTENT
+
+
 @app.route("/promotions/<int:promotion_id>", methods=["GET"])
 def get_promotion(promotion_id):
     """
@@ -77,6 +83,8 @@ def get_promotion(promotion_id):
 
     app.logger.info("Returning Promotion: %s", promotion.name)
     return jsonify(promotion.serialize()), status.HTTP_200_OK
+
+
 @app.route("/promotions", methods=["GET"])
 def list_promotions():
     """Returns a list of all Promotions"""

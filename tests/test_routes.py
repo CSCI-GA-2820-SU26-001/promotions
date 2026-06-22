@@ -73,6 +73,11 @@ class TestYourResourceService(TestCase):
         """It should call the home page"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertIn("service", data)
+        self.assertIn("version", data)
+        self.assertIn("promotions_url", data)
+        self.assertIn("/promotions", data["promotions_url"])
 
     def test_delete_promotion(self):
         """It should delete a Promotion"""
@@ -91,6 +96,7 @@ class TestYourResourceService(TestCase):
 
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(resp.data, b"")
+
     def test_read_promotion(self):
         """It should read a single Promotion"""
         promotion = PromotionFactory()
@@ -114,6 +120,7 @@ class TestYourResourceService(TestCase):
         data = resp.get_json()
         self.assertEqual(data["status"], status.HTTP_404_NOT_FOUND)
         self.assertEqual(data["error"], "Not Found")
+
     def test_get_promotion_list(self):
         """It should return a list of all Promotions"""
         promotions = PromotionFactory.create_batch(5)
