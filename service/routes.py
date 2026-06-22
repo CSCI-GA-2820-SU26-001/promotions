@@ -21,7 +21,7 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Promotion
 """
 
-from flask import jsonify, abort, url_for
+from flask import jsonify, abort, url_for, request
 from flask import current_app as app  # Import Flask application
 from service.models import Promotion
 from service.common import status  # HTTP Status Codes
@@ -47,7 +47,6 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
-# Todo: Place your REST API code here ...
 @app.route("/promotions", methods=["POST"])
 def create_promotion():
     """Create a new Promotion"""
