@@ -79,7 +79,6 @@ class TestYourResourceService(TestCase):
         self.assertIn("promotions_url", data)
         self.assertIn("/promotions", data["promotions_url"])
 
-
     def test_create_promotion(self):
         """It should create a promotion and return 201 with a Location header"""
         promotion = PromotionFactory()
@@ -133,7 +132,6 @@ class TestYourResourceService(TestCase):
             content_type="application/json",
         )
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
-
 
     def test_delete_promotion(self):
         """It should delete a Promotion"""
@@ -214,3 +212,117 @@ class TestYourResourceService(TestCase):
         self.assertEqual(result["start_date"], promotion.start_date.isoformat())
         self.assertEqual(result["end_date"], promotion.end_date.isoformat())
         self.assertIn("id", result)
+
+    def test_update_promotion(self):
+        """It should update an existing Promotion"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        new_data = promotion.serialize()
+        new_data["name"] = "Updated Promo Name"
+        new_data["discount_value"] = "25.00"
+        new_data["end_date"] = "2026-12-31"
+
+        resp = self.client.put(
+            f"{BASE_URL}/{promotion.id}",
+            json=new_data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(data["id"], promotion.id)
+        self.assertEqual(data["name"], "Updated Promo Name")
+        self.assertEqual(float(data["discount_value"]), 25.00)
+        self.assertEqual(data["end_date"], "2026-12-31")
+
+    def test_update_promotion_persists_to_database(self):
+        """It should persist the updated fields after a PUT"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        new_data = promotion.serialize()
+        new_data["name"] = "Persisted Name"
+
+        resp = self.client.put(
+            f"{BASE_URL}/{promotion.id}",
+            json=new_data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        resp = self.client.get(f"{BASE_URL}/{promotion.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.get_json()["name"], "Persisted Name")
+
+    def test_update_promotion_not_found(self):
+        """It should return 404 when updating a Promotion that does not exist"""
+        promotion = PromotionFactory()
+        new_data = promotion.serialize()
+        new_data.pop("id")
+
+        resp = self.client.put(
+            f"{BASE_URL}/0",
+            json=new_data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+        data = resp.get_json()
+        self.assertIn("status", data)
+        self.assertIn("error", data)
+        self.assertIn("message", data)
+        self.assertEqual(data["status"], status.HTTP_404_NOT_FOUND)
+        self.assertEqual(data["error"], "Not Found")
+
+    def test_update_promotion_missing_required_field(self):
+        """It should return 400 when the update payload is missing required fields"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        resp = self.client.put(
+            f"{BASE_URL}/{promotion.id}",
+            json={"discount_value": "10.00"},
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_promotion_invalid_content_type(self):
+        """It should return 415 when Content-Type is not application/json"""
+        promotion = PromotionFactory()
+        promotion.create()
+
+        resp = self.client.put(
+            f"{BASE_URL}/{promotion.id}",
+            data="not json",
+            content_type="text/plain",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    def test_update_promotion_does_not_change_id(self):
+        """It should not allow the promotion id to be changed via the payload"""
+        promotion = PromotionFactory()
+        promotion.create()
+        original_id = promotion.id
+
+        new_data = promotion.serialize()
+        new_data["id"] = original_id + 9999
+
+        resp = self.client.put(
+            f"{BASE_URL}/{original_id}",
+            json=new_data,
+            content_type="application/json",
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.get_json()["id"], original_id)
+
+    def test_method_not_allowed(self):
+        """It should return 405 when an unsupported HTTP method is used"""
+        resp = self.client.delete(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+        data = resp.get_json()
+        self.assertIn("status", data)
+        self.assertIn("error", data)
+        self.assertIn("message", data)
+        self.assertEqual(data["status"], status.HTTP_405_METHOD_NOT_ALLOWED)
+        self.assertEqual(data["error"], "Method not Allowed")

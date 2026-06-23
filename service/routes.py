@@ -47,6 +47,7 @@ def index():
 #  R E S T   A P I   E N D P O I N T S
 ######################################################################
 
+
 @app.route("/promotions", methods=["POST"])
 def create_promotion():
     """Create a new Promotion"""
@@ -114,9 +115,31 @@ def list_promotions():
     return jsonify(results), status.HTTP_200_OK
 
 
+@app.route("/promotions/<int:promotion_id>", methods=["PUT"])
+def update_promotion(promotion_id):
+    """Updates an existing Promotion"""
+    app.logger.info("Request to update Promotion with id [%s]", promotion_id)
+    check_content_type("application/json")
+
+    promotion = Promotion.find(promotion_id)
+    if not promotion:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id '{promotion_id}' was not found.",
+        )
+
+    promotion.deserialize(request.get_json())
+    promotion.id = promotion_id  # the URL path id is authoritative
+    promotion.update()
+
+    app.logger.info("Promotion with id [%s] updated!", promotion.id)
+    return jsonify(promotion.serialize()), status.HTTP_200_OK
+
+
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################
+
 
 def check_content_type(media_type):
     """Checks that the media type is correct"""
