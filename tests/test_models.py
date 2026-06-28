@@ -97,7 +97,9 @@ class TestPromotion(TestCase):
     def test_create_db_error_raises_data_validation_error(self):
         """It should raise DataValidationError and rollback when db.session.add fails"""
         resource = PromotionFactory()
-        with patch("service.models.db.session.commit", side_effect=Exception("DB error")):
+        with patch(
+            "service.models.db.session.commit", side_effect=Exception("DB error")
+        ):
             with self.assertRaises(DataValidationError):
                 resource.create()
 
@@ -106,7 +108,9 @@ class TestPromotion(TestCase):
         resource = PromotionFactory()
         resource.create()
         resource.name = "Changed"
-        with patch("service.models.db.session.commit", side_effect=Exception("DB error")):
+        with patch(
+            "service.models.db.session.commit", side_effect=Exception("DB error")
+        ):
             with self.assertRaises(DataValidationError):
                 resource.update()
 
@@ -123,7 +127,9 @@ class TestPromotion(TestCase):
         """It should raise DataValidationError and rollback when db.session.delete fails"""
         resource = PromotionFactory()
         resource.create()
-        with patch("service.models.db.session.delete", side_effect=Exception("DB error")):
+        with patch(
+            "service.models.db.session.delete", side_effect=Exception("DB error")
+        ):
             with self.assertRaises(DataValidationError):
                 resource.delete()
 
@@ -172,3 +178,40 @@ class TestPromotion(TestCase):
         PromotionFactory(name="Test Name").create()
         results = Promotion.find_by_name("Nonexistent")
         self.assertEqual(results.count(), 0)
+
+    def test_find_by_type(self):
+        """It should find Promotions by promotion_type"""
+        promotion = PromotionFactory(promotion_type=PromotionType.BOGO)
+        promotion.create()
+        other = PromotionFactory(promotion_type=PromotionType.PERCENT_OFF)
+        other.create()
+
+        found = Promotion.find_by_type(PromotionType.BOGO).all()
+        self.assertEqual(len(found), 1)
+        self.assertEqual(found[0].promotion_type, PromotionType.BOGO)
+
+    def test_find_by_type_multiple_matches(self):
+        """It should return all Promotions matching the given promotion_type"""
+        for _ in range(3):
+            promotion = PromotionFactory(promotion_type=PromotionType.BOGO)
+            promotion.create()
+        other = PromotionFactory(promotion_type=PromotionType.FIXED_AMOUNT)
+        other.create()
+
+        found = Promotion.find_by_type(PromotionType.BOGO).all()
+        self.assertEqual(len(found), 3)
+        for promotion in found:
+            self.assertEqual(promotion.promotion_type, PromotionType.BOGO)
+
+    def test_find_by_type_not_found(self):
+        """It should return an empty list when no Promotions match the type"""
+        promotion = PromotionFactory(promotion_type=PromotionType.PERCENT_OFF)
+        promotion.create()
+
+        found = Promotion.find_by_type(PromotionType.BOGO).all()
+        self.assertEqual(found, [])
+
+    def test_find_by_type_empty_database(self):
+        """It should return an empty list when there are no Promotions at all"""
+        found = Promotion.find_by_type(PromotionType.BOGO).all()
+        self.assertEqual(found, [])

@@ -154,3 +154,13 @@ class Promotion(db.Model):
         """
         logger.info("Processing name query for %s ...", name)
         return cls.query.filter(cls.name == name)
+
+    @classmethod
+    def find_by_type(cls, promotion_type):
+        """Returns all Promotions with the given promotion type
+
+        Args:
+            promotion_type (PromotionType): the type of the Promotions you want to match
+        """
+        logger.info("Processing promotion_type query for %s ...", promotion_type)
+        return cls.query.filter(cls.promotion_type == promotion_type)

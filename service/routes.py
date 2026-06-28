@@ -21,8 +21,8 @@ This service implements a REST API that allows you to Create, Read, Update
 and Delete Promotion
 """
 
-from flask import jsonify, abort, url_for, request
-from flask import current_app as app  # Import Flask application
+from flask import jsonify, abort, url_for, request, current_app as app
+
 from service.models import Promotion
 from service.common import status  # HTTP Status Codes
 
