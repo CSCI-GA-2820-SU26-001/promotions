@@ -24,7 +24,7 @@ import logging
 from unittest import TestCase
 from wsgi import app
 from service.common import status
-from service.models import db, Promotion
+from service.models import db, Promotion, PromotionType
 from tests.factories import PromotionFactory
 
 DATABASE_URI = os.getenv(
@@ -326,3 +326,51 @@ class TestYourResourceService(TestCase):
         self.assertIn("message", data)
         self.assertEqual(data["status"], status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(data["error"], "Method not Allowed")
+
+    def test_list_promotions_filtered_by_type(self):
+        """It should filter promotions by promotion_type"""
+        PromotionFactory(promotion_type=PromotionType.BOGO).create()
+        PromotionFactory(promotion_type=PromotionType.BOGO).create()
+        PromotionFactory(promotion_type=PromotionType.PERCENT_OFF).create()
+
+        resp = self.client.get(BASE_URL, query_string={"promotion_type": "BOGO"})
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 2)
+        for promo in data:
+            self.assertEqual(promo["promotion_type"], "BOGO")
+
+    def test_list_promotions_filtered_by_name(self):
+        """It should filter promotions by name"""
+        PromotionFactory(name="Big Sale").create()
+        PromotionFactory(name="Other Sale").create()
+
+        resp = self.client.get(BASE_URL, query_string={"name": "Big Sale"})
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0]["name"], "Big Sale")
+
+    def test_list_promotions_filtered_by_unknown_type_returns_empty(self):
+        """It should return 200 and an empty list for a nonexistent promotion_type"""
+        PromotionFactory(promotion_type=PromotionType.BOGO).create()
+
+        resp = self.client.get(BASE_URL, query_string={"promotion_type": "Expired"})
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data, [])
+
+    def test_list_promotions_no_filter_returns_all(self):
+        """It should return all promotions when no query params are given"""
+        PromotionFactory.create_batch(3)
+        for p in PromotionFactory.create_batch(3):
+            p.create()
+
+        resp = self.client.get(BASE_URL)
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), 3)
