@@ -58,7 +58,7 @@ def create_promotion():
     promotion.deserialize(request.get_json())
     promotion.create()
 
-    location_url = f"/promotions/{promotion.id}"
+    location_url = url_for("get_promotion", promotion_id=promotion.id, _external=True)
 
     return (
         jsonify(promotion.serialize()),

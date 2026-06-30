@@ -102,6 +102,16 @@ class TestYourResourceService(TestCase):
         self.assertEqual(data["start_date"], payload["start_date"])
         self.assertEqual(data["end_date"], payload["end_date"])
 
+        # verify location header is fully qualifie URL
+        location = resp.headers["Location"]
+        self.assertTrue(location.startswith("http://"))
+        self.assertTrue(location.endswith(f"/promotions/{data['id']}"))
+
+        # verify location header actually resolves to the created promo
+        follow_resp = self.client.get(location.replace("http://localhost", ""))
+        self.assertEqual(follow_resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(follow_resp.get_json()["id"], data["id"])
+
     def test_create_promotion_invalid_content_type(self):
         """It should return 415 when Content-Type is not application/json"""
         resp = self.client.post(
