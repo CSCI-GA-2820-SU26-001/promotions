@@ -2,8 +2,11 @@
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Python](https://img.shields.io/badge/Language-Python-blue.svg)](https://python.org/)
+[![CI](https://github.com/CSCI-GA-2820-SU26-001/promotions/actions/workflows/ci.yml/badge.svg)](https://github.com/CSCI-GA-2820-SU26-001/promotions/actions/workflows/ci.yml)
 
 The Promotions service is a RESTful Flask microservice for managing product and store promotions in an eCommerce application. A promotion represents a special sale or offer, such as "buy 1 get 1 free", a fixed dollar discount, or a percentage discount.
+
+The CI badge reports whether the current GitHub Actions test and lint workflow is passing. Click the badge to inspect failing checks and test output.
 
 ## Resource Model
 
