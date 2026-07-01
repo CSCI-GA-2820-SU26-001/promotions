@@ -79,6 +79,13 @@ class TestYourResourceService(TestCase):
         self.assertIn("promotions_url", data)
         self.assertIn("/promotions", data["promotions_url"])
 
+    def test_health_endpoint(self):
+        """It should return OK when the service is healthy"""
+        resp = self.client.get("/health")
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.get_json(), {"status": "OK"})
+
     def test_create_promotion(self):
         """It should create a promotion and return 201 with a Location header"""
         promotion = PromotionFactory()
