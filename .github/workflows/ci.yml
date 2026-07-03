@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: testdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d testdb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URI: postgresql+psycopg://postgres:postgres@localhost:5432/testdb
+      FLASK_APP: wsgi:app
+      PIPENV_NOSPIN: "1"
+      PYTHONUNBUFFERED: "1"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pipenv
+
+      - name: Install Pipenv
+        run: python -m pip install --upgrade pip pipenv==2026.6.2
+
+      - name: Install dependencies
+        run: pipenv install --dev --deploy
+
+      - name: Run unit tests
+        run: pipenv run pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings
+
+      - name: Run flake8 critical checks
+        run: pipenv run flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
+
+      - name: Run flake8 style checks
+        run: pipenv run flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Run pylint
+        run: pipenv run pylint service tests --max-line-length=127
