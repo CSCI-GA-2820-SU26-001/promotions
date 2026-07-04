@@ -54,7 +54,16 @@ jobs:
         run: pipenv install --dev --deploy
 
       - name: Run unit tests
-        run: pipenv run pytest --pspec --cov=service --cov-fail-under=95 --disable-warnings
+        run: pipenv run pytest --pspec --cov=service --cov-report=xml --cov-fail-under=95 --disable-warnings
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          files: ./coverage.xml
+          flags: unittests
+          name: promotions-codecov
+          fail_ci_if_error: true
+          token: ${{ secrets.CODECOV_TOKEN }}
 
       - name: Run flake8 critical checks
         run: pipenv run flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
