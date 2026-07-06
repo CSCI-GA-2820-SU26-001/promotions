@@ -1,6 +1,6 @@
 # These can be overidden with env vars.
 REGISTRY ?= cluster-registry:5000
-IMAGE_NAME ?= petshop
+IMAGE_NAME ?= promotions
 IMAGE_TAG ?= 1.0
 IMAGE ?= $(REGISTRY)/$(IMAGE_NAME):$(IMAGE_TAG)
 PLATFORM ?= "linux/amd64,linux/arm64"
@@ -91,15 +91,15 @@ build:	## Build the project container image for local platform
 	$(info Building $(IMAGE)...)
 	docker build --rm --pull --tag $(IMAGE) .
 
-.PHONY: push
-push:	## Push the image to the container registry
+push:   ## Push the image to the container registry
 	$(info Pushing $(IMAGE)...)
-	docker push $(IMAGE)
+	docker tag $(IMAGE) localhost:5000/$(IMAGE_NAME):$(IMAGE_TAG)
+	docker push localhost:5000/$(IMAGE_NAME):$(IMAGE_TAG)
 
 .PHONY: buildx
 buildx:	## Build multi-platform image with buildx
 	$(info Building multi-platform image $(IMAGE) for $(PLATFORM)...)
-	docker buildx build --file Dockerfile --pull --platform=$(PLATFORM) --tag $(IMAGE) --push .
+	docker buildx build --pull --platform=$(PLATFORM) --tag $(IMAGE) --push .
 
 .PHONY: remove
 remove:	## Stop and remove the buildx builder
