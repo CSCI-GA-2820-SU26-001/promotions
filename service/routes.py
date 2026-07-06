@@ -154,6 +154,25 @@ def update_promotion(promotion_id):
     return jsonify(promotion.serialize()), status.HTTP_200_OK
 
 
+@app.route("/promotions/<int:promotion_id>/deactivate", methods=["PUT"])
+def deactivate_promotion(promotion_id):
+    """Deactivate a Promotion"""
+    app.logger.info("Request to deactivate Promotion with id: %s", promotion_id)
+
+    promotion = Promotion.find(promotion_id)
+    if not promotion:
+        abort(
+            status.HTTP_404_NOT_FOUND,
+            f"Promotion with id '{promotion_id}' was not found.",
+        )
+
+    promotion.active = False
+    promotion.update()
+
+    app.logger.info("Promotion with id %s has been deactivated", promotion_id)
+    return jsonify(promotion.serialize()), status.HTTP_200_OK
+
+
 ######################################################################
 #  U T I L I T Y   F U N C T I O N S
 ######################################################################

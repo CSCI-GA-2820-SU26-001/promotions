@@ -391,3 +391,46 @@ class TestYourResourceService(TestCase):
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 3)
+
+    def test_deactivate_promotion(self):
+        """It should deactivate an active promotion and return 200 with active: False"""
+        promotion = PromotionFactory(active=True)
+        promotion.create()
+
+        resp = self.client.put(f"{BASE_URL}/{promotion.id}/deactivate")
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["id"], promotion.id)
+        self.assertFalse(data["active"])
+
+    def test_deactivate_already_inactive_promotion(self):
+        """It should return 200 and keep active: False when promotion is already inactive"""
+        promotion = PromotionFactory(active=False)
+        promotion.create()
+
+        resp = self.client.put(f"{BASE_URL}/{promotion.id}/deactivate")
+
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertFalse(data["active"])
+
+    def test_deactivate_promotion_not_found(self):
+        """It should return 404 when the promotion does not exist"""
+        resp = self.client.put(f"{BASE_URL}/0/deactivate")
+
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+        data = resp.get_json()
+        self.assertEqual(data["status"], status.HTTP_404_NOT_FOUND)
+        self.assertEqual(data["error"], "Not Found")
+
+    def test_deactivate_promotion_persists(self):
+        """It should persist the deactivated state when re-fetched"""
+        promotion = PromotionFactory(active=True)
+        promotion.create()
+
+        self.client.put(f"{BASE_URL}/{promotion.id}/deactivate")
+
+        resp = self.client.get(f"{BASE_URL}/{promotion.id}")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertFalse(resp.get_json()["active"])
