@@ -215,3 +215,28 @@ class TestPromotion(TestCase):
         """It should return an empty list when there are no Promotions at all"""
         found = Promotion.find_by_type(PromotionType.BOGO).all()
         self.assertEqual(found, [])
+
+    def test_active_defaults_to_true(self):
+        """It should default active to True when not specified"""
+        promotion = PromotionFactory()
+        promotion.create()
+        found = Promotion.find(promotion.id)
+        self.assertTrue(found.active)
+
+    def test_serialize_includes_active(self):
+        """It should include active in the serialized output"""
+        promotion = PromotionFactory(active=False)
+        promotion.create()
+        data = promotion.serialize()
+        self.assertIn("active", data)
+        self.assertFalse(data["active"])
+
+    def test_deserialize_active_field(self):
+        """It should deserialize the active field correctly"""
+        promotion = PromotionFactory(active=True)
+        promotion.create()
+        serialized = promotion.serialize()
+        serialized["active"] = False
+        new_promotion = Promotion()
+        new_promotion.deserialize(serialized)
+        self.assertFalse(new_promotion.active)

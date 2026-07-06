@@ -23,3 +23,4 @@ class PromotionFactory(factory.Factory):
     discount_value = FuzzyDecimal(0, 100, precision=2)
     start_date = factory.Faker("date_object")
     end_date = factory.LazyAttribute(lambda o: o.start_date + timedelta(days=7))
+    active = True

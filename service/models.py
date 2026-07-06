@@ -45,6 +45,7 @@ class Promotion(db.Model):
     discount_value = db.Column(db.Numeric(10, 2), nullable=False, default=0.0)
     start_date = db.Column(db.Date)
     end_date = db.Column(db.Date)
+    active = db.Column(db.Boolean, nullable=False, default=True)
 
     def __repr__(self):
         return f"<Promotion {self.name} id=[{self.id}]>"
@@ -95,6 +96,7 @@ class Promotion(db.Model):
             "discount_value": self.discount_value,
             "start_date": self.start_date.isoformat() if self.start_date else None,
             "end_date": self.end_date.isoformat() if self.end_date else None,
+            "active": self.active,
         }
 
     def deserialize(self, data):
@@ -108,6 +110,7 @@ class Promotion(db.Model):
             self.name = data["name"]
             self.promotion_type = PromotionType[data["promotion_type"]]
             self.discount_value = data.get("discount_value", 0.0)
+            self.active = data.get("active", True)
             self.start_date = (
                 date.fromisoformat(data["start_date"])
                 if data.get("start_date")
