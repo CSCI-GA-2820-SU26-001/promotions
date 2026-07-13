@@ -196,6 +196,8 @@ def check_content_type(media_type):
 @app.route("/promotions/reset", methods=["DELETE"])
 def reset_promotions():
     """Resets the database for testing — should be disabled in production"""
+    if not app.config.get("TESTING"):
+        abort(status.HTTP_404_NOT_FOUND)
     db.session.query(Promotion).delete()
     db.session.commit()
     return jsonify(message="database reset"), status.HTTP_200_OK
