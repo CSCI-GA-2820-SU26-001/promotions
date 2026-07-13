@@ -434,3 +434,16 @@ class TestYourResourceService(TestCase):
         resp = self.client.get(f"{BASE_URL}/{promotion.id}")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         self.assertFalse(resp.get_json()["active"])
+
+    def test_reset_promotions(self):
+        """It should delete all Promotions and return 200"""
+        promotions = PromotionFactory.create_batch(5)
+        for promotion in promotions:
+            promotion.create()
+
+        resp = self.client.delete(f"{BASE_URL}/reset")
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        resp = self.client.get(BASE_URL)
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        self.assertEqual(resp.get_json(), [])
