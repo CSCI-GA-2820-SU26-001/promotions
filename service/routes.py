@@ -23,7 +23,7 @@ and Delete Promotion
 
 from flask import jsonify, abort, url_for, request, current_app as app
 
-from service.models import Promotion, PromotionType
+from service.models import Promotion, PromotionType, db
 from service.common import status  # HTTP Status Codes
 
 
@@ -188,3 +188,14 @@ def check_content_type(media_type):
         status.HTTP_415_UNSUPPORTED_MEDIA_TYPE,
         f"Content type must be {media_type}",
     )
+
+
+######################################################################
+# RESET DATABASE (test use only)
+######################################################################
+@app.route("/promotions/reset", methods=["DELETE"])
+def reset_promotions():
+    """Resets the database for testing — should be disabled in production"""
+    db.session.query(Promotion).delete()
+    db.session.commit()
+    return jsonify(message="database reset"), status.HTTP_200_OK

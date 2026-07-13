@@ -10,6 +10,8 @@ psycopg = {extras = ["binary"], version = "==3.3.2"}
 retry2 = "==0.9.5"
 python-dotenv = "~=1.2.2"
 gunicorn = "~=25.0.0"
+behave = "*"
+requests = "*"
 
 [dev-packages]
 # Code Quality
@@ -27,6 +29,8 @@ coverage = "~=7.13.2"
 # Utility
 honcho = "~=2.0.0"
 httpie = "~=3.2.4"
+behave = "*"
+requests = "*"
 
 [requires]
 python_version = "3.12"
