@@ -55,13 +55,13 @@ Feature: Promotions API
     And the "Name" field should be empty
     And I should see "Unknown" in the "Type" dropdown
     When I paste the "Id" field
-    # And I press the "Retrieve" button
-    # Then I should see the message "Promotion has been Created!"
-    # And I should see "July Sale" in the "Name" field
-    # And I should see "Percent Off" in the "Type" dropdown
-    # And I should see "10.00" in the "Discount Value" field
-    # And I should see "2026-07-01" in the "Start Date" field
-    # And I should see "2026-07-31" in the "End Date" field
+    And I press the "Retrieve" button
+    Then I should see the message "Promotion has been Created!"
+    And I should see "July Sale" in the "Name" field
+    And I should see "Percent Off" in the "Type" dropdown
+    And I should see "10.00" in the "Discount Value" field
+    And I should see "2026-07-01" in the "Start Date" field
+    And I should see "2026-07-31" in the "End Date" field
 
   # ---------------------------------------------------------------
   # Read Promotion
