@@ -32,43 +32,43 @@ $(function () {
     // TODO: USE PET TEMPLATE BELOW TO IMPLEMENT API'S FOR PROMOTIONS
 
     // ****************************************
-    // Create a Pet
+    // Create a Promotion
     // ****************************************
 
-    // $("#create-btn").click(function () {
+    $("#create-btn").click(function () {
 
-    //     let name = $("#pet_name").val();
-    //     let category = $("#pet_category").val();
-    //     let available = $("#pet_available").val() == "true";
-    //     let gender = $("#pet_gender").val();
-    //     let birthday = $("#pet_birthday").val();
+        let name           = $("#promotion_name").val();
+        let promotion_type = $("#promotion_type").val();
+        let discount_value = $("#promotion_discount").val();
+        let start_date     = $("#promotion_start_date").val();
+        let end_date       = $("#promotion_end_date").val();
 
-    //     let data = {
-    //         "name": name,
-    //         "category": category,
-    //         "available": available,
-    //         "gender": gender,
-    //         "birthday": birthday
-    //     };
+        let data = {
+            "name": name,
+            "promotion_type": promotion_type,
+            "discount_value": parseFloat(discount_value) || 0.0,
+            "start_date": start_date || null,
+            "end_date": end_date || null,
+        };
 
-    //     $("#flash_message").empty();
-        
-    //     let ajax = $.ajax({
-    //         type: "POST",
-    //         url: "/pets",
-    //         contentType: "application/json",
-    //         data: JSON.stringify(data),
-    //     });
+        $("#flash_message").empty();
 
-    //     ajax.done(function(res){
-    //         update_form_data(res)
-    //         flash_message("Success")
-    //     });
+        let ajax = $.ajax({
+            type: "POST",
+            url: "/promotions",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+        });
 
-    //     ajax.fail(function(res){
-    //         flash_message(res.responseJSON.message)
-    //     });
-    // });
+        ajax.done(function(res) {
+            update_form_data(res);
+            flash_message("Promotion has been Created!");
+        });
+
+        ajax.fail(function(res){
+            flash_message(res.responseJSON.message)
+        });
+    });
 
 
     // // ****************************************
