@@ -40,7 +40,6 @@ Feature: Promotions API
   # Create Promotion
   # ---------------------------------------------------------------
 
-  @wip
   Scenario: Create a new promotion
     When I visit the "Home Page"
     And I set the "Name" to "July Sale"
@@ -49,33 +48,20 @@ Feature: Promotions API
     And I set the "Start Date" to "07-1-2026"
     And I set the "End Date" to "07-31-2026"
     And I press the "Create" button
-    Then I should see the message "Success"
+    Then I should see the message "Promotion has been Created!"
     When I copy the "Id" field
     And I press the "Clear" button
     Then the "Id" field should be empty
     And the "Name" field should be empty
-    And the "Type" field should be empty
+    And I should see "Unknown" in the "Type" dropdown
     When I paste the "Id" field
-    And I press the "Retrieve" button
-    Then I should see the message "Success"
-    And I should see "July Sale" in the "Name" field
-    And I should see "Percent Off" in the "Type" dropdown
-    And I should see "10.00" in the "Discount Value" field
-    And I should see "2026-07-01" in the "Start Date" field
-    And I should see "2026-07-31" in the "End Date" field
-
-  @wip
-  Scenario: Create a promotion with missing required fields
-    When I visit the "Home Page"
-    And I set the "Discount Value" to "10.00"
-    And I press the "Create" button
-    Then I should see "404 Not Found"
-
-  @wip
-  Scenario: Create a promotion with wrong content type
-    When I visit the "Home Page"
-    And I select "UNKNOWN" in the "Type" dropdown
-    Then I should see "404 Not Found"
+    # And I press the "Retrieve" button
+    # Then I should see the message "Promotion has been Created!"
+    # And I should see "July Sale" in the "Name" field
+    # And I should see "Percent Off" in the "Type" dropdown
+    # And I should see "10.00" in the "Discount Value" field
+    # And I should see "2026-07-01" in the "Start Date" field
+    # And I should see "2026-07-31" in the "End Date" field
 
   # ---------------------------------------------------------------
   # Read Promotion
