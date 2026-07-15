@@ -70,14 +70,10 @@ class TestYourResourceService(TestCase):
     ######################################################################
 
     def test_index(self):
-        """It should call the home page"""
+        """It should call the home page and return HTML"""
         resp = self.client.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        data = resp.get_json()
-        self.assertIn("service", data)
-        self.assertIn("version", data)
-        self.assertIn("promotions_url", data)
-        self.assertIn("/promotions", data["promotions_url"])
+        self.assertIn(b"Promotions Service", resp.data)
 
     def test_health_endpoint(self):
         """It should return OK when the service is healthy"""

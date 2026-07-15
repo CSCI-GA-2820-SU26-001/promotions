@@ -32,15 +32,8 @@ from service.common import status  # HTTP Status Codes
 ######################################################################
 @app.route("/", methods=["GET"])
 def index():
-    """Root URL - returns service discovery information."""
-    return (
-        jsonify(
-            service="Promotions Service",
-            version="1.0.0",
-            promotions_url=url_for("list_promotions", _external=True),
-        ),
-        200,
-    )
+    """Base URL for our service"""
+    return app.send_static_file("index.html")
 
 
 @app.route("/health", methods=["GET"])
