@@ -58,6 +58,18 @@ def step_impl(context: Any) -> None:
     # save_screenshot(context, 'Home Page')
 
 
+@then('I should see "{message}" in the title')
+def step_impl(context: Any, message: str) -> None:
+    """Check the document for a message"""
+    assert message in context.driver.title
+
+
+@then('I should not see "{text_string}"')
+def step_impl(context: Any, text_string: str) -> None:
+    element = context.driver.find_element(By.TAG_NAME, "body")
+    assert text_string not in element.text
+
+
 @when('I set the "{element_name}" to "{text_string}"')
 def step_impl(context: Any, element_name: str, text_string: str) -> None:
     element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
@@ -71,18 +83,6 @@ def step_impl(context: Any, text: str, element_name: str) -> None:
     element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
     element = Select(context.driver.find_element(By.ID, element_id))
     element.select_by_visible_text(text)
-
-
-@then('I should see "{message}"')
-def step_impl(context: Any, message: str) -> None:
-    """Check the document for a message"""
-    assert message in context.driver.title
-
-
-@then('I should not see "{text_string}"')
-def step_impl(context: Any, text_string: str) -> None:
-    element = context.driver.find_element(By.TAG_NAME, "body")
-    assert text_string not in element.text
 
 
 @then('I should see "{text}" in the "{element_name}" dropdown')
