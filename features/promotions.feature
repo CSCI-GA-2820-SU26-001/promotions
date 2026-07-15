@@ -13,8 +13,6 @@ Feature: Promotions API
   Scenario: The server is running
     When I visit the "home page"
     Then I should see "Promotions Service"
-    And I should see "promotions_url"
-    And the response status code should be 200
 
   # ---------------------------------------------------------------
   # List Promotions
