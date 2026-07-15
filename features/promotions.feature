@@ -22,18 +22,18 @@ Feature: Promotions API
   # List Promotions
   # ---------------------------------------------------------------
 
-  @wip
   Scenario: List all promotions when none exist
+    Given there are no promotions
     When I visit the "Home Page"
-    And I press the "Search" button
-    Then I should see the message "Success"
+    And I press the "List" button
+    Then I should see the message "No promotions found"
     And I should see 0 rows in the results table
 
-  @wip
   Scenario: List all promotions
     When I visit the "Home Page"
-    And I press the "Search" button
+    And I press the "List" button
     Then I should see the message "Success"
+    And I should see 2 rows in the results table
     And I should see "Summer Sale" in the results
     And I should see "Black Friday" in the results
   # ---------------------------------------------------------------

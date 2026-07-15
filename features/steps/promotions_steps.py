@@ -42,3 +42,16 @@ def step_impl(context):
         }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(status.HTTP_201_CREATED)
+
+
+@given("there are no promotions")
+def step_no_promotions(context):
+    """Delete all promotions"""
+    rest_endpoint = f"{context.base_url}/promotions"
+    context.resp = requests.get(rest_endpoint, timeout=WAIT_TIMEOUT)
+    expect(context.resp.status_code).equal_to(status.HTTP_200_OK)
+    for promotion in context.resp.json():
+        context.resp = requests.delete(
+            f"{rest_endpoint}/{promotion['id']}", timeout=WAIT_TIMEOUT
+        )
+        expect(context.resp.status_code).equal_to(status.HTTP_204_NO_CONTENT)
