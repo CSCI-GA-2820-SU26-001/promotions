@@ -29,6 +29,36 @@ $(function () {
         $("#flash_message").append(message);
     }
 
+    function clear_results() {
+        $("#results_body").empty();
+    }
+
+    function append_result_row(promotion) {
+        let active = promotion.active;
+        if (active === undefined || active === null) {
+            active = "";
+        }
+
+        $("#results_body").append(
+            `<tr id="row_${promotion.id}">
+                <td>${promotion.id}</td>
+                <td>${promotion.name}</td>
+                <td>${promotion.promotion_type}</td>
+                <td>${promotion.discount_value}</td>
+                <td>${promotion.start_date}</td>
+                <td>${promotion.end_date}</td>
+                <td>${active}</td>
+            </tr>`
+        );
+    }
+
+    function update_results_table(promotions) {
+        clear_results();
+        for (let i = 0; i < promotions.length; i++) {
+            append_result_row(promotions[i]);
+        }
+    }
+
     // TODO: USE PET TEMPLATE BELOW TO IMPLEMENT API'S FOR PROMOTIONS
 
     // ****************************************
@@ -142,6 +172,36 @@ $(function () {
 
     });
 
+    // ****************************************
+    // List all Promotions
+    // ****************************************
+
+    $("#list-btn").click(function () {
+
+        $("#flash_message").empty();
+        clear_results();
+
+        let ajax = $.ajax({
+            type: "GET",
+            url: "/promotions",
+            contentType: "application/json",
+            data: ''
+        });
+
+        ajax.done(function(res) {
+            update_results_table(res);
+            if (res.length === 0) {
+                flash_message("No promotions found");
+            } else {
+                flash_message("Success");
+            }
+        });
+
+        ajax.fail(function(res){
+            flash_message(res.responseJSON.message)
+        });
+    });
+
     // // ****************************************
     // // Delete a Pet
     // // ****************************************
@@ -176,6 +236,7 @@ $(function () {
     $("#clear-btn").click(function () {
         $("#promotion_id").val("");
         $("#flash_message").empty();
+        clear_results();
         clear_form_data()
     });
 

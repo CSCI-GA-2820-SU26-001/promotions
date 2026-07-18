@@ -153,6 +153,14 @@ def step_impl(context: Any, name: str) -> None:
     assert name not in element.text
 
 
+@then("I should see {count:d} rows in the results table")
+def step_impl(context: Any, count: int) -> None:
+    WebDriverWait(context.driver, context.wait_seconds).until(
+        lambda driver: len(driver.find_elements(By.CSS_SELECTOR, "#results_body tr"))
+        == count
+    )
+
+
 @then('I should see the message "{message}"')
 def step_impl(context: Any, message: str) -> None:
     # Uncomment next line to take a screenshot of the web page for debugging
