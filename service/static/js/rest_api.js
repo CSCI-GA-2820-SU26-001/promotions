@@ -202,6 +202,80 @@ $(function () {
         });
     });
 
+    // ****************************************
+    // Search for a Promotion
+    // ****************************************
+
+    $("#search-btn").click(function () {
+
+        let name           = $("#promotion_name").val();
+        let promotion_type = $("#promotion_type").val();
+
+        let queryString = "";
+
+        if (name) {
+            queryString += "name=" + name;
+        }
+        if (promotion_type && promotion_type !== "UNKNOWN") {
+            if (queryString.length > 0) {
+                queryString += "&";
+            }
+            queryString += "promotion_type=" + promotion_type;
+        }
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+            type: "GET",
+            url: `/promotions?${queryString}`,
+            contentType: "application/json",
+            data: ""
+        });
+
+        ajax.done(function(res) {
+            update_results_table(res);
+            if (res.length === 0) {
+                flash_message("No promotions found");
+            } else {
+                flash_message("Success");
+            }
+        });
+
+        ajax.fail(function(res) {
+            flash_message(res.responseJSON.message);
+        });
+
+    });
+
+    // ****************************************
+    // Deactivate a Promotion
+    // ****************************************
+
+    $("#deactivate-btn").click(function () {
+
+        let promotion_id = $("#promotion_id").val();
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+            type: "PUT",
+            url: `/promotions/${promotion_id}/deactivate`,
+            contentType: "application/json",
+            data: ""
+        });
+
+        ajax.done(function(res) {
+            update_form_data(res);
+            clear_results();
+            append_result_row(res);
+            flash_message("Success");
+        });
+
+        ajax.fail(function(res) {
+            flash_message(res.responseJSON.message);
+        });
+
+    });
     // // ****************************************
     // // Delete a Pet
     // // ****************************************
@@ -315,5 +389,7 @@ $(function () {
     //     });
 
     // });
+
+    
 
 })

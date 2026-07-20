@@ -133,3 +133,28 @@ Feature: Promotions API
     And I set the "Promotion ID" to the last created promotion ID
     And I press the "Retrieve" button
     Then I should see the message "Not Found"
+
+
+  Given the following promotions
+      | name        | promotion_type | discount_value | start_date | end_date   |
+      | Summer Sale | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
+
+  Scenario: Deactivate a promotion by searching by name
+    When I visit the "Home Page"
+    And I set the "Name" to "Summer Sale"
+    And I press the "Search" button
+    Then I should see "Summer Sale" in the results
+    When I set the "Promotion ID" to the last created promotion ID
+    And I press the "Deactivate" button
+    Then I should see the message "Success"
+    And I should see "false" in the results
+
+  Scenario: Deactivate a promotion by retrieving by ID
+    When I visit the "Home Page"
+    And I set the "Promotion ID" to the last created promotion ID
+    And I press the "Retrieve" button
+    Then I should see the message "Success"
+    When I press the "Deactivate" button
+    Then I should see the message "Success"
+    When I press the "Retrieve" button
+    Then I should see "false" in the results

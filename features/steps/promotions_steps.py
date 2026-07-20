@@ -6,6 +6,9 @@ import requests
 from compare3 import expect
 from behave import given
 from service.common import status  # HTTP Status Codes
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 
 WAIT_TIMEOUT = 60
 
@@ -42,6 +45,7 @@ def step_impl(context):
         }
         context.resp = requests.post(rest_endpoint, json=payload, timeout=WAIT_TIMEOUT)
         expect(context.resp.status_code).equal_to(status.HTTP_201_CREATED)
+        context.last_id = context.resp.json()["id"]
 
 
 @given("there are no promotions")
@@ -55,3 +59,13 @@ def step_no_promotions(context):
             f"{rest_endpoint}/{promotion['id']}", timeout=WAIT_TIMEOUT
         )
         expect(context.resp.status_code).equal_to(status.HTTP_204_NO_CONTENT)
+
+
+@when('I set the "Promotion ID" to the last created promotion ID')
+def step_set_promotion_id(context):
+    """Set the Promotion ID field to the last created promotion's ID"""
+    element = WebDriverWait(context.driver, context.wait_seconds).until(
+        expected_conditions.presence_of_element_located((By.ID, "promotion_id"))
+    )
+    element.clear()
+    element.send_keys(str(context.last_id))
