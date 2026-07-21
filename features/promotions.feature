@@ -5,9 +5,9 @@ Feature: Promotions API
 
   Background:
     Given the following promotions
-    | name         | promotion_type | discount_value | start_date | end_date   |
-    | Summer Sale  | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
-    | Black Friday | FIXED_AMOUNT   | 50.00          | 2026-11-27 | 2026-11-30 |
+      | name         | promotion_type | discount_value | start_date | end_date   |
+      | Summer Sale  | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
+      | Black Friday | FIXED_AMOUNT   | 50.00          | 2026-11-27 | 2026-11-30 |
 
   # ---------------------------------------------------------------
   # Root / Service Discovery
@@ -36,6 +36,7 @@ Feature: Promotions API
     And I should see 2 rows in the results table
     And I should see "Summer Sale" in the results
     And I should see "Black Friday" in the results
+
   # ---------------------------------------------------------------
   # Create Promotion
   # ---------------------------------------------------------------
@@ -69,7 +70,7 @@ Feature: Promotions API
 
   @wip
   Scenario: Read an existing promotion
-    Given the following promotions exist
+    Given the following promotions
       | name        | promotion_type | discount_value | start_date | end_date   |
       | Summer Sale | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
     When I visit the "Home Page"
@@ -92,7 +93,7 @@ Feature: Promotions API
 
   @wip
   Scenario: Update an existing promotion
-    Given the following promotions exist
+    Given the following promotions
       | name        | promotion_type | discount_value | start_date | end_date   |
       | Summer Sale | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
     When I visit the "Home Page"
@@ -120,11 +121,25 @@ Feature: Promotions API
   # Delete Promotion
   # ---------------------------------------------------------------
 
-  @wip
-  Scenario: Delete a promotion
-    Given the following promotions exist
-      | name        | promotion_type | discount_value | start_date | end_date   |
-      | Summer Sale | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
+  Scenario: Delete a promotion by searching by name
+    Given the following promotions
+      | name           | promotion_type | discount_value | start_date | end_date   |
+      | Expired Coupon | PERCENT_OFF    | 10.00          | 2026-01-01 | 2026-01-31 |
+    When I visit the "Home Page"
+    And I set the "Name" to "Expired Coupon"
+    And I press the "Search" button
+    Then I should see "Expired Coupon" in the results
+    When I set the "Promotion ID" to the last created promotion ID
+    And I press the "Delete" button
+    Then I should see the message "Promotion has been Deleted!"
+    When I press the "Clear" button
+    And I press the "List" button
+    Then I should not see "Expired Coupon" in the results
+
+  Scenario: Delete a promotion by ID then confirm it is gone
+    Given the following promotions
+      | name           | promotion_type | discount_value | start_date | end_date   |
+      | Expired Coupon | PERCENT_OFF    | 10.00          | 2026-01-01 | 2026-01-31 |
     When I visit the "Home Page"
     And I set the "Promotion ID" to the last created promotion ID
     And I press the "Delete" button
@@ -134,12 +149,14 @@ Feature: Promotions API
     And I press the "Retrieve" button
     Then I should see the message "Not Found"
 
-
-  Given the following promotions
-      | name        | promotion_type | discount_value | start_date | end_date   |
-      | Summer Sale | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
+  # ---------------------------------------------------------------
+  # Deactivate Promotion
+  # ---------------------------------------------------------------
 
   Scenario: Deactivate a promotion by searching by name
+    Given the following promotions
+      | name        | promotion_type | discount_value | start_date | end_date   |
+      | Summer Sale | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
     When I visit the "Home Page"
     And I set the "Name" to "Summer Sale"
     And I press the "Search" button
@@ -150,6 +167,9 @@ Feature: Promotions API
     And I should see "false" in the results
 
   Scenario: Deactivate a promotion by retrieving by ID
+    Given the following promotions
+      | name        | promotion_type | discount_value | start_date | end_date   |
+      | Summer Sale | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
     When I visit the "Home Page"
     And I set the "Promotion ID" to the last created promotion ID
     And I press the "Retrieve" button
