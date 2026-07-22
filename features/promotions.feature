@@ -83,8 +83,8 @@ Feature: Promotions API
     And I set the "Name" to "July Sale"
     And I select "Percent Off" in the "Type" dropdown
     And I set the "Discount Value" to "10.00"
-    And I set the "Start Date" to "07-1-2026"
-    And I set the "End Date" to "07-31-2026"
+    And I set the "Start Date" to "2026-07-01"
+    And I set the "End Date" to "2026-07-31"
     And I press the "Create" button
     Then I should see the message "Promotion has been Created!"
     When I copy the "Id" field
@@ -94,7 +94,7 @@ Feature: Promotions API
     And I should see "Unknown" in the "Type" dropdown
     When I paste the "Id" field
     And I press the "Retrieve" button
-    Then I should see the message "Promotion has been Created!"
+    Then I should see the message "Success"
     And I should see "July Sale" in the "Name" field
     And I should see "Percent Off" in the "Type" dropdown
     And I should see "10.00" in the "Discount Value" field
@@ -128,7 +128,6 @@ Feature: Promotions API
   # Update Promotion
   # ---------------------------------------------------------------
 
-  @wip
   Scenario: Update an existing promotion
     Given the following promotions
       | name        | promotion_type | discount_value | start_date | end_date   |
@@ -146,10 +145,9 @@ Feature: Promotions API
     Then I should see "Summer Sale Extended" in the "Name" field
     And I should see "25.00" in the "Discount Value" field
 
-  @wip
   Scenario: Update a promotion that does not exist
     When I visit the "Home Page"
-    And I set the "Promotion ID" to "0"
+    And I set the "Id" to "0"
     And I set the "Name" to "Ghost Promo"
     And I press the "Update" button
     Then I should see the message "Not Found"
