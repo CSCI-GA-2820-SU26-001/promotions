@@ -75,7 +75,15 @@ def step_impl(context: Any, element_name: str, text_string: str) -> None:
     element_id = ID_PREFIX + element_name.lower().replace(" ", "_")
     element = context.driver.find_element(By.ID, element_id)
     element.clear()
-    element.send_keys(text_string)
+    if element.get_attribute("type") == "date":
+        context.driver.execute_script(
+            "arguments[0].value = arguments[1];"
+            "arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+            element,
+            text_string,
+        )
+    else:
+        element.send_keys(text_string)
 
 
 @when('I select "{text}" in the "{element_name}" dropdown')

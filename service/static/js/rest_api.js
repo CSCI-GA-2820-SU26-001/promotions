@@ -9,7 +9,7 @@ $(function () {
         $("#promotion_id").val(res.id);
         $("#promotion_name").val(res.name);
         $("#promotion_type").val(res.promotion_type);
-        $("#promotion_discount").val(res.discount_value);
+        $("#promotion_discount_value").val(res.discount_value);
         $("#promotion_start_date").val(res.start_date);
         $("#promotion_end_date").val(res.end_date);
     }
@@ -18,9 +18,21 @@ $(function () {
     function clear_form_data() {
         $("#promotion_name").val("");
         $("#promotion_type").val("UNKNOWN");
-        $("#promotion_discount").val("");
+        $("#promotion_discount_value").val("");
         $("#promotion_start_date").val("");
         $("#promotion_end_date").val("");
+    }
+
+    function get_form_data() {
+        let discount_value = $("#promotion_discount_value").val();
+
+        return {
+            "name": $("#promotion_name").val(),
+            "promotion_type": $("#promotion_type").val(),
+            "discount_value": parseFloat(discount_value) || 0.0,
+            "start_date": $("#promotion_start_date").val() || null,
+            "end_date": $("#promotion_end_date").val() || null,
+        };
     }
 
     // Updates the flash message area
@@ -67,19 +79,7 @@ $(function () {
 
     $("#create-btn").click(function () {
 
-        let name           = $("#promotion_name").val();
-        let promotion_type = $("#promotion_type").val();
-        let discount_value = $("#promotion_discount").val();
-        let start_date     = $("#promotion_start_date").val();
-        let end_date       = $("#promotion_end_date").val();
-
-        let data = {
-            "name": name,
-            "promotion_type": promotion_type,
-            "discount_value": parseFloat(discount_value) || 0.0,
-            "start_date": start_date || null,
-            "end_date": end_date || null,
-        };
+        let data = get_form_data();
 
         $("#flash_message").empty();
 
@@ -141,6 +141,37 @@ $(function () {
     //     });
 
     // });
+
+    // ****************************************
+    // Update a Promotion
+    // ****************************************
+
+    $("#update-btn").click(function () {
+
+        let promotion_id = $("#promotion_id").val();
+        let data = get_form_data();
+
+        $("#flash_message").empty();
+
+        let ajax = $.ajax({
+            type: "PUT",
+            url: `/promotions/${promotion_id}`,
+            contentType: "application/json",
+            data: JSON.stringify(data)
+        });
+
+        ajax.done(function(res) {
+            update_form_data(res);
+            clear_results();
+            append_result_row(res);
+            flash_message("Success");
+        });
+
+        ajax.fail(function(res) {
+            flash_message(res.responseJSON.message);
+        });
+
+    });
 
     // ****************************************
     // Retrieve a Promotion
