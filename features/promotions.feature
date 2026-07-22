@@ -38,6 +38,43 @@ Feature: Promotions API
     And I should see "Black Friday" in the results
 
   # ---------------------------------------------------------------
+  # Query Promotions
+  # ---------------------------------------------------------------
+
+  Scenario: Query promotions by name
+    Given the following promotions
+      | name            | promotion_type | discount_value | start_date | end_date   |
+      | Big Sale & More | BOGO           | 0.00           | 2026-07-01 | 2026-07-31 |
+      | Black Friday    | FIXED_AMOUNT   | 50.00          | 2026-11-27 | 2026-11-30 |
+    When I visit the "Home Page"
+    And I set the "Name" to "Big Sale & More"
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see 1 rows in the results table
+    And I should see "Big Sale & More" in the results
+    And I should not see "Black Friday" in the results
+
+  Scenario: Query promotions by promotion type
+    Given the following promotions
+      | name         | promotion_type | discount_value | start_date | end_date   |
+      | BOGO Special | BOGO           | 0.00           | 2026-07-01 | 2026-07-31 |
+      | Summer Sale  | PERCENT_OFF    | 20.00          | 2026-06-01 | 2026-08-31 |
+    When I visit the "Home Page"
+    And I select "BOGO" in the "Type" dropdown
+    And I press the "Search" button
+    Then I should see the message "Success"
+    And I should see 1 rows in the results table
+    And I should see "BOGO Special" in the results
+    And I should not see "Summer Sale" in the results
+
+  Scenario: Query promotions with no matching results
+    When I visit the "Home Page"
+    And I set the "Name" to "Missing Sale"
+    And I press the "Search" button
+    Then I should see the message "No promotions found"
+    And I should see 0 rows in the results table
+
+  # ---------------------------------------------------------------
   # Create Promotion
   # ---------------------------------------------------------------
 
