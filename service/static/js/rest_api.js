@@ -211,23 +211,22 @@ $(function () {
         let name           = $("#promotion_name").val();
         let promotion_type = $("#promotion_type").val();
 
-        let queryString = "";
+        let queryData = {};
 
         if (name) {
-            queryString += "name=" + name;
+            queryData.name = name;
         }
         if (promotion_type && promotion_type !== "UNKNOWN") {
-            if (queryString.length > 0) {
-                queryString += "&";
-            }
-            queryString += "promotion_type=" + promotion_type;
+            queryData.promotion_type = promotion_type;
         }
+        let queryString = $.param(queryData);
+        let url = queryString ? `/promotions?${queryString}` : "/promotions";
 
         $("#flash_message").empty();
 
         let ajax = $.ajax({
             type: "GET",
-            url: `/promotions?${queryString}`,
+            url: url,
             contentType: "application/json",
             data: ""
         });
