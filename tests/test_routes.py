@@ -22,6 +22,7 @@ TestPromotion API Service Test Suite
 import os
 import logging
 from unittest import TestCase
+from unittest.mock import patch
 from wsgi import app
 from service.common import status
 from service.models import db, Promotion, PromotionType
@@ -339,6 +340,28 @@ class TestYourResourceService(TestCase):
         self.assertIn("message", data)
         self.assertEqual(data["status"], status.HTTP_405_METHOD_NOT_ALLOWED)
         self.assertEqual(data["error"], "Method not Allowed")
+
+    def test_internal_server_error(self):
+        """It should return 500 when an unexpected error occurs"""
+        app.config["PROPAGATE_EXCEPTIONS"] = False
+        try:
+            with patch(
+                "service.routes.Promotion.all", side_effect=Exception("boom")
+            ):
+                resp = self.client.get(BASE_URL)
+            self.assertEqual(
+                resp.status_code, status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            data = resp.get_json()
+            self.assertIn("status", data)
+            self.assertIn("error", data)
+            self.assertIn("message", data)
+            self.assertEqual(
+                data["status"], status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+            self.assertEqual(data["error"], "Internal Server Error")
+        finally:
+            app.config["PROPAGATE_EXCEPTIONS"] = True
 
     def test_list_promotions_filtered_by_type(self):
         """It should filter promotions by promotion_type"""

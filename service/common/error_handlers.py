@@ -25,7 +25,6 @@ from werkzeug.exceptions import (
     NotFound,
     MethodNotAllowed,
     UnsupportedMediaType,
-    InternalServerError,
 )
 from service.models import DataValidationError
 from service.routes import api
@@ -89,7 +88,7 @@ def mediatype_not_supported(error):
     }, status.HTTP_415_UNSUPPORTED_MEDIA_TYPE
 
 
-@api.errorhandler(InternalServerError)
+@api.errorhandler
 def internal_server_error(error):
     """Handles unexpected server error with 500_SERVER_ERROR"""
     message = str(error)
