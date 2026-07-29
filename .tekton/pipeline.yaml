@@ -10,13 +10,19 @@ spec:
     This pipeline clones the source code, runs linting and unit tests,
     builds a container image, and deploys it to OpenShift.
   params:
+    - name: APP_NAME
+      type: string
+      description: The name of the application
     - name: GIT_REPO
+      type: string
       description: The URL of the GitHub repository to clone
-      type: string
     - name: GIT_REF
-      description: The git revision (branch, tag, or SHA) to clone
       type: string
+      description: The git revision to clone
       default: "master"
+    - name: IMAGE_NAME
+      type: string
+      description: The container image name to build and push
   workspaces:
     - name: pipeline-workspace
       description: |
