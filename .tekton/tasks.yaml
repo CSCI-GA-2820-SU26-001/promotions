@@ -1,1 +1,27 @@
-# define TASKS that are not on Tekton Hub here
+---
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: lint
+spec:
+  description: Run Python code quality checks.
+  workspaces:
+    - name: source
+  steps:
+    - name: lint
+      image: quay.io/rofrano/pipeline-selenium:sp26
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: HOME
+          value: /tekton/home
+        - name: PIPENV_NOSPIN
+          value: "1"
+        - name: PYTHONUNBUFFERED
+          value: "1"
+      script: |
+        #!/usr/bin/env bash
+        set -e
+        pipenv install --dev --deploy
+        pipenv run flake8 service tests --count --select=E9,F63,F7,F82 --show-source --statistics
+        pipenv run flake8 service tests --count --max-complexity=10 --max-line-length=127 --statistics
+        pipenv run pylint service tests --max-line-length=127
