@@ -1,3 +1,6 @@
+# The promotionservice database should be created for you, if not here is the command:
+# psql -c "create database promotionservice;" -U postgres
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -5,7 +8,7 @@ metadata:
   labels:
     app: postgres
 spec:
-  serviceName: postgres-service
+  serviceName: "postgres"
   replicas: 1
   selector:
     matchLabels:
@@ -20,36 +23,35 @@ spec:
           image: postgres:15-alpine
           ports:
             - containerPort: 5432
-          envFrom:
-            - configMapRef:
-                name: postgres-config
+              protocol: TCP
           env:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: postgres-secret
-                  key: POSTGRES_PASSWORD
-          resources:
-            requests:
-              cpu: "100m"
-              memory: "256Mi"
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
+                  name: postgres-creds
+                  key: password
+            - name: POSTGRES_USER
+              valueFrom:
+                  configMapKeyRef:
+                    name: postgres-config
+                    key: postgres_user
+            - name: POSTGRES_DB
+              valueFrom:
+                  configMapKeyRef:
+                    name: postgres-config
+                    key: postgres_db
           volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-          readinessProbe:
-            exec:
-              command: ["pg_isready", "-U", "postgres"]
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          livenessProbe:
-            exec:
-              command: ["pg_isready", "-U", "postgres"]
-            initialDelaySeconds: 30
-            periodSeconds: 10
+          - name: postgres-storage
+            mountPath: /var/lib/postgresql
+          resources:
+            limits:
+              cpu: "0.50"
+              memory: "128Mi"
+            requests:
+              cpu: "0.25"
+              memory: "64Mi"
       volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: postgres-pvc
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+        # emptyDir: {}
