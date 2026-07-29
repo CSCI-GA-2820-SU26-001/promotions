@@ -1,5 +1,5 @@
-# define WORKFLOW: which task runs first, etc. 
-# Clone → (Lint & Test in parallel) → Build → Deploy → BDD Tests
+# define WORKFLOW: which task runs first, etc.
+# Clone -> (Lint & Test in parallel) -> Build -> Deploy -> BDD Tests
 
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
@@ -26,7 +26,7 @@ spec:
   workspaces:
     - name: pipeline-workspace
       description: |
-        This workspace is shared among all tasks to store the cloned 
+        This workspace is shared among all tasks to store the cloned
         source code and build artifacts.
   tasks:
     - name: clone
@@ -41,3 +41,21 @@ spec:
           value: $(params.GIT_REPO)
         - name: revision
           value: $(params.GIT_REF)
+    - name: lint
+      description: Runs code quality checks.
+      runAfter:
+        - clone
+      taskRef:
+        name: lint
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+    - name: unit-tests
+      description: Runs the unit test suite.
+      runAfter:
+        - clone
+      taskRef:
+        name: unit-tests
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
