@@ -1,0 +1,37 @@
+# define WORKFLOW: which task runs first, etc. 
+# Clone → (Lint & Test in parallel) → Build → Deploy → BDD Tests
+
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: cd-pipeline
+spec:
+  description: |
+    This pipeline clones the source code, runs linting and unit tests,
+    builds a container image, and deploys it to OpenShift.
+  params:
+    - name: GIT_REPO
+      description: The URL of the GitHub repository to clone
+      type: string
+    - name: GIT_REF
+      description: The git revision (branch, tag, or SHA) to clone
+      type: string
+      default: "master"
+  workspaces:
+    - name: pipeline-workspace
+      description: |
+        This workspace is shared among all tasks to store the cloned 
+        source code and build artifacts.
+  tasks:
+    - name: clone
+      description: Clones the application source code from GitHub.
+      taskRef:
+        name: git-clone
+      workspaces:
+        - name: output
+          workspace: pipeline-workspace
+      params:
+        - name: url
+          value: $(params.GIT_REPO)
+        - name: revision
+          value: $(params.GIT_REF)
