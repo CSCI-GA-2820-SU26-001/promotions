@@ -59,3 +59,17 @@ spec:
       workspaces:
         - name: source
           workspace: pipeline-workspace
+    - name: build
+      description: Builds a container image and pushes it to the registry.
+      runAfter:
+        - lint
+        - unit-tests
+      taskRef:
+        name: buildah
+        kind: ClusterTask
+      workspaces:
+        - name: source
+          workspace: pipeline-workspace
+      params:
+        - name: IMAGE
+          value: "$(params.IMAGE_NAME)"
